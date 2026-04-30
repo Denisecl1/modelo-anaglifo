@@ -1,0 +1,36 @@
+/* ===== Estilos generales ===== */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #000;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  z-index: 1000;
+}
+
+/* ===== Contenedor del visor 3D ===== */
+#viewer-container {
+  width: 100%;
+  height: calc(100vh - 112px); /* altura total menos navbar y footer */
+  display: block;
+  background: radial-gradient(circle at center, #111 0%, #000 100%);
+}
+
+/* ===== Footer ===== */
+footer {
+  height: 56px;
+  font-size: 0.95rem;
+  z-index: 1000;
+  position: relative;
+}
+
+/* ===== Canvas de Three.js ===== */
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
