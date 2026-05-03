@@ -319,6 +319,33 @@ ramaDer.rotation.y = Math.PI;
 
 scene.add(ramaDer);
 
+// ==========================
+// Rama en Esquina Superior Izquierda (Nueva)
+// ==========================
+const rama2Texture = textureLoaderVegetacion.load('assets/rama2.png');
+
+// La hacemos de un tamaño ligeramente diferente para variedad (ej. 6x6)
+const rama2Geometry = new THREE.PlaneGeometry(6, 6); 
+
+const rama2Material = new THREE.MeshBasicMaterial({
+  map: rama2Texture,
+  transparent: true,
+  side: THREE.DoubleSide,
+  fog: false 
+});
+
+const rama2Izq = new THREE.Mesh(rama2Geometry, rama2Material);
+
+// POSICIONAMIENTO IZQUIERDO:
+// X = -4.5 (Hacia la izquierda)
+// Y = 3.5 (Un poco más abajo que la derecha para asimetría)
+// Z = 1.2 (Un poco más profunda para jugar con el anaglifo)
+rama2Izq.position.set(3, 2, -1);
+
+// Rotación para que "entre" desde la esquina superior izquierda
+rama2Izq.rotation.z = 0.3; 
+
+scene.add(rama2Izq);
 
 
 
