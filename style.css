@@ -1,36 +1,101 @@
 /* ===== Estilos generales ===== */
-body {
+body, html {
   margin: 0;
   padding: 0;
+  height: 100%;
   overflow: hidden;
-  background-color: #000;
-  font-family: Arial, sans-serif;
+  background-color: #0a141e;
+  font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ===== Navbar ===== */
-.navbar {
-  z-index: 1000;
-}
-
-/* ===== Contenedor del visor 3D ===== */
 #viewer-container {
   width: 100%;
-  height: calc(100vh - 112px); /* altura total menos navbar y footer */
-  display: block;
-  background: radial-gradient(circle at center, #111 0%, #000 100%);
-}
-
-/* ===== Footer ===== */
-footer {
-  height: 56px;
-  font-size: 0.95rem;
-  z-index: 1000;
+  height: 100vh;
   position: relative;
+  z-index: 1;
 }
 
-/* ===== Canvas de Three.js ===== */
-canvas {
-  display: block;
+/* ===== Capas de Interfaz Flotante ===== */
+.overlay-ui {
+  position: absolute;
   width: 100%;
-  height: 100%;
+  z-index: 1000;
+  pointer-events: none; /* Permite clickear el 3D a través del texto */
+  text-align: center;
+  color: #ffffff;
 }
+
+.top-ui { top: 20px; }
+.bottom-ui { bottom: 20px; }
+
+/* Estilo de los textos con Glow y Sombra */
+.navbar-brand-custom {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 2px 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.credits {
+  font-size: 0.9rem;
+  margin: 0;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 2px 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+/* ===== Guía del Mouse ===== */
+.interaction-hint {
+  position: absolute;
+  top: 50%;
+  left: 30px;
+  transform: translateY(-50%);
+  color: #ffffff;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 5px #000;
+}
+
+.mouse-icon {
+  width: 20px;
+  height: 30px;
+  border: 2px solid #ffffff;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  position: relative;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.mouse-icon::after {
+  content: '';
+  width: 3px;
+  height: 7px;
+  background: #ff4400; /* Naranja fuego */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 5px;
+  border-radius: 2px;
+  box-shadow: 0 0 8px #ff4400;
+  animation: mouseWheel 2s infinite;
+}
+
+@keyframes mouseWheel {
+  0% { opacity: 1; top: 5px; }
+  100% { opacity: 0; top: 18px; }
+}
+
+canvas { display: block; outline: none; }
