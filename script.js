@@ -107,6 +107,22 @@ grid.position.y = 0.01; // Para evitar que parpadee con el piso
 scene.add(grid);
 
 // ==========================
+// Círculo Mágico (Suelo)
+// ==========================
+// Creamos un anillo plano
+const ringGeometry = new THREE.RingGeometry(1.0, 1.15, 32);
+const ringMaterial = new THREE.MeshStandardMaterial({
+  color: 0xff4400,
+  emissive: 0xff2200,      // Brillo rojo/naranja
+  emissiveIntensity: 2.0,  // Fuerza del brillo
+  side: THREE.DoubleSide
+});
+const magicRing = new THREE.Mesh(ringGeometry, ringMaterial);
+magicRing.rotation.x = -Math.PI / 2; // Lo acostamos en el piso
+magicRing.position.y = 0.02; // Lo subimos un milímetro para que no se empalme con el grid
+scene.add(magicRing);
+
+// ==========================
 // Cargar modelo FBX (Mixamo)
 // ==========================
 const loader = new FBXLoader();
@@ -181,6 +197,57 @@ for (let i = 0; i < 40; i++) { // Aumentamos la cantidad ya que son más pequeñ
 }
 
 // ==========================
+// Lluvia de Pétalos (Sakura) con Textura PNG
+// ==========================
+const petals = [];
+
+// 1. Cargamos tu imagen PNG
+const textureLoader = new THREE.TextureLoader();
+const petalTexture = textureLoader.load('assets/petalo.png');
+
+// 2. Geometría plana (Ajusta estos números si tu imagen se ve muy estirada o apachurrada)
+const petalGeometry = new THREE.PlaneGeometry(0.08, 0.08);
+
+for (let i = 0; i < 70; i++) {
+  // 3. Material usando tu textura
+  const petalMaterial = new THREE.MeshStandardMaterial({
+    map: petalTexture,       // Aplicamos la imagen
+    transparent: true,       // Fundamental para que el fondo del PNG sea invisible
+    alphaTest: 0.1,          // Ayuda a que los bordes transparentes se recorten limpio
+    side: THREE.DoubleSide,  // Para que el pétalo se vea por delante y por detrás
+    roughness: 0.8,
+    // Le dejamos un brillo muuuy sutil para que resalte en la oscuridad
+    emissive: 0xffffff,
+    emissiveIntensity: 0.05 
+  });
+
+  const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+
+  // Posición inicial aleatoria (arriba en el aire)
+  petal.position.set(
+    (Math.random() - 0.5) * 12, // X
+    Math.random() * 5 + 1,      // Y (Altura)
+    (Math.random() - 0.5) * 8 - 2 // Z
+  );
+
+  // Rotación inicial aleatoria
+  petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+
+  // Configuramos físicas de caída libre
+  petal.userData = {
+    speedY: 0.01 + Math.random() * 0.015,  
+    speedX: 0.002 + Math.random() * 0.003, 
+    speedZ: 0.005 + Math.random() * 0.005, 
+    rotSpeedX: Math.random() * 0.02,
+    rotSpeedY: Math.random() * 0.02,
+    offset: Math.random() * Math.PI * 2
+  };
+
+  scene.add(petal);
+  petals.push(petal);
+}
+
+// ==========================
 // Reloj y Animación
 // ==========================
 const clock = new THREE.Clock();
@@ -196,17 +263,15 @@ function animate() {
 
   const time = Date.now();
   
+  // 1. Animación de las Esferas
   floatingSpheres.forEach((sphere) => {
     const data = sphere.userData;
 
-    // Movimiento tipo luciérnaga mágica
     sphere.position.x = data.baseX + Math.sin(time * data.speedX + data.offset) * 0.8;
     sphere.position.y = data.baseY + Math.cos(time * data.speedY + data.offset) * 0.5;
     
-    // Avanzan hacia la cámara
-   sphere.position.z += data.speedForward;
+    sphere.position.z += data.speedForward;
 
-    // NUEVO LÍMITE: Dejamos que viajen hasta Z = 2.5 (casi chocando con la cámara en Z = 3)
     if (sphere.position.z > 2.5) {
       sphere.position.z = -6.0;
       data.baseX = (Math.random() - 0.5) * 10;
@@ -217,10 +282,45 @@ function animate() {
     sphere.rotation.y += 0.005;
   });
 
+  // 2. Animación de los pétalos de Sakura (AHORA ADENTRO DE LA FUNCIÓN)
+  petals.forEach((petal) => {
+    const pData = petal.userData;
+
+    // Caen constantemente
+    petal.position.y -= pData.speedY;
+    
+    // El viento los empuja hacia adelante y los balancea de lado
+    petal.position.x += Math.sin(time * pData.speedX + pData.offset) * 0.01;
+    petal.position.z += pData.speedZ;
+
+    // Giran sobre sí mismos mientras caen
+    petal.rotation.x += pData.rotSpeedX;
+    petal.rotation.y += pData.rotSpeedY;
+
+    // BUCLE: Si tocan el suelo (Y < 0) o salen mucho de la pantalla (Z > 3)
+    if (petal.position.y < 0 || petal.position.z > 3) {
+      petal.position.y = 5 + Math.random() * 2;
+      petal.position.x = (Math.random() - 0.5) * 12;
+      petal.position.z = (Math.random() - 0.5) * 8 - 3;
+    }
+  });
+
+  // 3. Render final
   effect.render(scene, camera);
 }
 
 animate();
+
+// ==========================
+// Responsive
+// ==========================
+window.addEventListener("resize", () => {
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  effect.setSize(container.clientWidth, container.clientHeight);
+});
 
 // ==========================
 // Responsive
