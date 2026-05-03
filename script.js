@@ -7,16 +7,24 @@ import { AnaglyphEffect } from "https://unpkg.com/three@0.160.0/examples/jsm/eff
 // Visualización 3D con Anaglifo y Mixamo
 // Desarrollado por: Diana Denise Campos Lozano
 // Ingeniería en TIC's
+// Tema: Dojo Místico / Paisaje Asiático
 // ==========================================
 
-// ==========================
-// Escena, cámara y renderer
-// ==========================
 const container = document.getElementById("viewer-container");
 
+// ==========================
+// Escena, Atmósfera y Niebla
+// ==========================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x050505);
+// Color azul noche profundo (inspirado en sombras místicas)
+const bgColor = new THREE.Color(0x0a141e); 
+scene.background = bgColor;
+// Agregamos niebla para dar profundidad y ocultar el horizonte
+scene.fog = new THREE.FogExp2(bgColor, 0.12); 
 
+// ==========================
+// Cámara
+// ==========================
 const camera = new THREE.PerspectiveCamera(
   60,
   container.clientWidth / container.clientHeight,
@@ -24,16 +32,20 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 camera.position.set(0, 1.7, 3);
-
-// El enfoque en 3.0 convierte al personaje en el "cristal de tu monitor"
 camera.focus = 3.0;
 
+// ==========================
+// Renderer
+// ==========================
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
   alpha: false
 });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+// Habilitamos el mapeo de tonos para que las luces brillantes se vean más cinemáticas
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
 container.appendChild(renderer.domElement);
 
 // ==========================
@@ -42,11 +54,9 @@ container.appendChild(renderer.domElement);
 const effect = new AnaglyphEffect(renderer);
 effect.setSize(container.clientWidth, container.clientHeight);
 
-// AJUSTE CLAVE PARA LA VISTA: 
-// Bajamos la separación a 0.020. Esto cura la "visión doble" 
-// y hace que la escena sea súper cómoda de mirar por largo rato.
+// Separación cómoda para la vista
 if (effect.stereo) {
-  effect.stereo.eyeSep = 0.020; 
+  effect.stereo.eyeSep = 0.05; 
 }
 
 // ==========================
@@ -57,40 +67,43 @@ controls.enableDamping = true;
 controls.target.set(0, 1, 0);
 controls.minDistance = 2;
 controls.maxDistance = 10;
+controls.maxPolarAngle = Math.PI / 2 + 0.1; // Limita para no ver mucho por debajo del piso
 controls.update();
 
 // ==========================
-// Iluminación
+// Iluminación (Estilo Atardecer Asiático)
 // ==========================
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+// Luz base azulada/nocturna
+const ambientLight = new THREE.AmbientLight(0x203040, 2.0); 
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+// Luz cálida principal (simula el sol del atardecer o linternas rojas)
+const directionalLight = new THREE.DirectionalLight(0xff7733, 3.5);
 directionalLight.position.set(5, 10, 7);
 scene.add(directionalLight);
 
-const backLight = new THREE.DirectionalLight(0xffffff, 1);
+// Luz de relleno fría (simula reflejos del agua o niebla)
+const backLight = new THREE.DirectionalLight(0x0088ff, 2.0);
 backLight.position.set(-5, 5, -5);
 scene.add(backLight);
 
 // ==========================
-// Piso
+// Piso (Estilo Piedra Oscura/Patio)
 // ==========================
-const floorGeometry = new THREE.PlaneGeometry(10, 10);
+const floorGeometry = new THREE.PlaneGeometry(20, 20); // Piso más grande para la niebla
 const floorMaterial = new THREE.MeshStandardMaterial({
-  color: 0x222222,
-  roughness: 0.8,
-  metalness: 0.2
+  color: 0x0a0c10,
+  roughness: 0.1, // Ligeramente reflectante (como piedra pulida o agua estancada)
+  metalness: 0.3
 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = 0;
 scene.add(floor);
 
-// ==========================
-// Grid helper
-// ==========================
-const grid = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+// Grid helper (Cambiado a tonos azulados para integrarse en la noche)
+const grid = new THREE.GridHelper(20, 20, 0x113355, 0x081522);
+grid.position.y = 0.01; // Para evitar que parpadee con el piso
 scene.add(grid);
 
 // ==========================
@@ -129,41 +142,37 @@ loader.load(
 );
 
 // ==========================
-// Esferas flotantes (Movimiento Dinámico)
+// Espíritus/Luciérnagas Mágicas (Esferas)
 // ==========================
 const floatingSpheres = [];
-const sphereGeometry = new THREE.SphereGeometry(0.15, 32, 32);
 
-for (let i = 0; i < 25; i++) {
+// NUEVO TAMAÑO: El doble de grandes para que el cerebro fusione los colores
+const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+
+for (let i = 0; i < 40; i++) { // Aumentamos la cantidad ya que son más pequeñas
   const sphereMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    emissive: 0x222222,
-    roughness: 0.4,
-    metalness: 0.3
+    color: 0xffaa00, // Color base dorado
+    emissive: 0xff4400, // Brillo naranja/rojizo intenso
+    emissiveIntensity: 2.0, // Fuerza del brillo
+    roughness: 0.2,
+    metalness: 0.8
   });
 
   const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
-  // Asignamos una posición base controlada
-  const posX = (Math.random() - 0.5) * 8;
-  const posY = Math.random() * 3 + 0.5;
-  // Posición base en Z ligeramente detrás o justo en el personaje
-  const posZ = (Math.random() * 2.0) - 1.5; 
+  const posX = (Math.random() - 0.5) * 10;
+  const posY = Math.random() * 3 + 0.2;
+  const posZ = (Math.random() * 8.0) - 6.0; 
 
   sphere.position.set(posX, posY, posZ);
 
-  // Configuramos el comportamiento único de cada esfera
   sphere.userData = {
     baseX: sphere.position.x,
     baseY: sphere.position.y,
-    baseZ: sphere.position.z,
-    // Velocidad de movimiento (más lenta para el eje Z para que parezca que viajan)
-    speedX: 0.0004 + Math.random() * 0.0004,
-    speedY: 0.0006 + Math.random() * 0.0006,
-    speedZ: 0.0003 + Math.random() * 0.0003, // Muy lento hacia adelante/atrás
-    // Amplitud Z: Define qué tanto viajan hacia el usuario. 
-    // Al sumar la baseZ + zAmplitude, algunas lograrán rebasar la pantalla (Z > 0)
-    zAmplitude: 0.8 + Math.random() * 1.2, 
+    // Movimiento serpenteante más errático (como luciérnagas)
+    speedX: 0.001 + Math.random() * 0.001,
+    speedY: 0.001 + Math.random() * 0.002,
+    speedForward: 0.0015 + Math.random() * 0.003, 
     offset: Math.random() * Math.PI * 2      
   };
 
@@ -172,13 +181,10 @@ for (let i = 0; i < 25; i++) {
 }
 
 // ==========================
-// Reloj
+// Reloj y Animación
 // ==========================
 const clock = new THREE.Clock();
 
-// ==========================
-// Animación
-// ==========================
 function animate() {
   requestAnimationFrame(animate);
 
@@ -193,17 +199,22 @@ function animate() {
   floatingSpheres.forEach((sphere) => {
     const data = sphere.userData;
 
-    // Movimiento orgánico
-    sphere.position.x = data.baseX + Math.sin(time * data.speedX + data.offset) * 1.2;
-    sphere.position.y = data.baseY + Math.sin(time * data.speedY + data.offset) * 0.8;
+    // Movimiento tipo luciérnaga mágica
+    sphere.position.x = data.baseX + Math.sin(time * data.speedX + data.offset) * 0.8;
+    sphere.position.y = data.baseY + Math.cos(time * data.speedY + data.offset) * 0.5;
     
-    // NUEVO MOVIMIENTO EN Z: 
-    // Ahora oscilan profundamente, viniendo hacia la cámara y retrocediendo,
-    // dando un efecto real de "viaje espacial" interactivo con la pantalla.
-    sphere.position.z = data.baseZ + Math.sin(time * data.speedZ + data.offset) * data.zAmplitude;
+    // Avanzan hacia la cámara
+   sphere.position.z += data.speedForward;
 
-    sphere.rotation.x += 0.002;
-    sphere.rotation.y += 0.002;
+    // NUEVO LÍMITE: Dejamos que viajen hasta Z = 2.5 (casi chocando con la cámara en Z = 3)
+    if (sphere.position.z > 2.5) {
+      sphere.position.z = -6.0;
+      data.baseX = (Math.random() - 0.5) * 10;
+      data.baseY = Math.random() * 3 + 0.2;
+    }
+
+    sphere.rotation.x += 0.005;
+    sphere.rotation.y += 0.005;
   });
 
   effect.render(scene, camera);
