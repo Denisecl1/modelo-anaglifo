@@ -103,12 +103,14 @@ canvas { display: block; outline: none; }
 /* Contenedor del control de audio */
 .audio-hint-container {
   position: absolute;
-  bottom: 30px;
-  right: 30px;
+  bottom: 25px; /* Súbelo un poquito */
+  right: 25px;
   z-index: 2000;
   display: flex;
   align-items: center;
-  cursor: pointer;
+  background: rgba(0,0,0,0.3); /* Un fondo oscuro sutil ayuda a que se vea en GitHub */
+  padding: 5px 10px;
+  border-radius: 20px;
 }
 
 /* Texto de ayuda para el audio */
