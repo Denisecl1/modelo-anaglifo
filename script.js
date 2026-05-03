@@ -16,11 +16,9 @@ const container = document.getElementById("viewer-container");
 // Escena, Atmósfera y Niebla
 // ==========================
 const scene = new THREE.Scene();
-// Color azul noche profundo (inspirado en sombras místicas)
-const bgColor = new THREE.Color(0x0a141e); 
-scene.background = bgColor;
-// Agregamos niebla para dar profundidad y ocultar el horizonte
-scene.fog = new THREE.FogExp2(bgColor, 0.12); 
+
+// Mantenemos la niebla con el color azul noche para no perder la atmósfera
+scene.fog = new THREE.FogExp2(0x0a141e, 0.12); 
 
 // ==========================
 // Cámara
@@ -39,13 +37,17 @@ camera.focus = 3.0;
 // ==========================
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
-  alpha: false
+  alpha: true // Enciende la transparencia del canvas
 });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-// Habilitamos el mapeo de tonos para que las luces brillantes se vean más cinemáticas
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
+
+// ¡IMPORTANTE! Asegura que el canvas 3D esté por encima de la luna HTML
+renderer.domElement.style.position = "relative";
+renderer.domElement.style.zIndex = "10"; 
+
 container.appendChild(renderer.domElement);
 
 // ==========================
@@ -73,16 +75,13 @@ controls.update();
 // ==========================
 // Iluminación (Estilo Atardecer Asiático)
 // ==========================
-// Luz base azulada/nocturna
 const ambientLight = new THREE.AmbientLight(0x203040, 2.0); 
 scene.add(ambientLight);
 
-// Luz cálida principal (simula el sol del atardecer o linternas rojas)
 const directionalLight = new THREE.DirectionalLight(0xff7733, 3.5);
 directionalLight.position.set(5, 10, 7);
 scene.add(directionalLight);
 
-// Luz de relleno fría (simula reflejos del agua o niebla)
 const backLight = new THREE.DirectionalLight(0x0088ff, 2.0);
 backLight.position.set(-5, 5, -5);
 scene.add(backLight);
@@ -90,10 +89,10 @@ scene.add(backLight);
 // ==========================
 // Piso (Estilo Piedra Oscura/Patio)
 // ==========================
-const floorGeometry = new THREE.PlaneGeometry(20, 20); // Piso más grande para la niebla
+const floorGeometry = new THREE.PlaneGeometry(20, 20); 
 const floorMaterial = new THREE.MeshStandardMaterial({
   color: 0x0a0c10,
-  roughness: 0.1, // Ligeramente reflectante (como piedra pulida o agua estancada)
+  roughness: 0.1, 
   metalness: 0.3
 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
@@ -101,26 +100,48 @@ floor.rotation.x = -Math.PI / 2;
 floor.position.y = 0;
 scene.add(floor);
 
-// Grid helper (Cambiado a tonos azulados para integrarse en la noche)
 const grid = new THREE.GridHelper(20, 20, 0x113355, 0x081522);
-grid.position.y = 0.01; // Para evitar que parpadee con el piso
+grid.position.y = 0.01; 
 scene.add(grid);
 
 // ==========================
 // Círculo Mágico (Suelo)
 // ==========================
-// Creamos un anillo plano
 const ringGeometry = new THREE.RingGeometry(1.0, 1.15, 32);
 const ringMaterial = new THREE.MeshStandardMaterial({
   color: 0xff4400,
-  emissive: 0xff2200,      // Brillo rojo/naranja
-  emissiveIntensity: 2.0,  // Fuerza del brillo
+  emissive: 0xff2200,      
+  emissiveIntensity: 2.0,  
   side: THREE.DoubleSide
 });
 const magicRing = new THREE.Mesh(ringGeometry, ringMaterial);
-magicRing.rotation.x = -Math.PI / 2; // Lo acostamos en el piso
-magicRing.position.y = 0.02; // Lo subimos un milímetro para que no se empalme con el grid
+magicRing.rotation.x = -Math.PI / 2; 
+magicRing.position.y = 0.02; 
 scene.add(magicRing);
+
+// ==========================
+// Luna en el cielo (Fija en el mundo 3D)
+// ==========================
+const moonLoader = new THREE.TextureLoader();
+const moonTexture = moonLoader.load('assets/luna.png');
+
+// Hacemos un plano grande para la luna
+const moonGeometry = new THREE.PlaneGeometry(15, 15);
+const moonMaterial = new THREE.MeshBasicMaterial({
+  map: moonTexture,
+  transparent: true,
+  fog: false // Para que la niebla oscura no la tape
+});
+
+const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+
+// La colocamos muy atrás en el fondo (Z = -25), arriba (Y = 12) y a la izquierda (X = -10)
+moon.position.set(-10, 12, -25);
+
+// Hacemos que la luna "mire" hacia el centro del escenario para que no se vea plana al girar
+moon.lookAt(0, 0, 0);
+
+scene.add(moon);
 
 // ==========================
 // Cargar modelo FBX (Mixamo)
@@ -161,15 +182,13 @@ loader.load(
 // Espíritus/Luciérnagas Mágicas (Esferas)
 // ==========================
 const floatingSpheres = [];
-
-// NUEVO TAMAÑO: El doble de grandes para que el cerebro fusione los colores
 const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
 
-for (let i = 0; i < 40; i++) { // Aumentamos la cantidad ya que son más pequeñas
+for (let i = 0; i < 40; i++) { 
   const sphereMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffaa00, // Color base dorado
-    emissive: 0xff4400, // Brillo naranja/rojizo intenso
-    emissiveIntensity: 2.0, // Fuerza del brillo
+    color: 0xffaa00, 
+    emissive: 0xff4400, 
+    emissiveIntensity: 2.0, 
     roughness: 0.2,
     metalness: 0.8
   });
@@ -185,7 +204,6 @@ for (let i = 0; i < 40; i++) { // Aumentamos la cantidad ya que son más pequeñ
   sphere.userData = {
     baseX: sphere.position.x,
     baseY: sphere.position.y,
-    // Movimiento serpenteante más errático (como luciérnagas)
     speedX: 0.001 + Math.random() * 0.001,
     speedY: 0.001 + Math.random() * 0.002,
     speedForward: 0.0015 + Math.random() * 0.003, 
@@ -200,40 +218,31 @@ for (let i = 0; i < 40; i++) { // Aumentamos la cantidad ya que son más pequeñ
 // Lluvia de Pétalos (Sakura) con Textura PNG
 // ==========================
 const petals = [];
-
-// 1. Cargamos tu imagen PNG
 const textureLoader = new THREE.TextureLoader();
 const petalTexture = textureLoader.load('assets/petalo.png');
-
-// 2. Geometría plana (Ajusta estos números si tu imagen se ve muy estirada o apachurrada)
 const petalGeometry = new THREE.PlaneGeometry(0.08, 0.08);
 
 for (let i = 0; i < 70; i++) {
-  // 3. Material usando tu textura
   const petalMaterial = new THREE.MeshStandardMaterial({
-    map: petalTexture,       // Aplicamos la imagen
-    transparent: true,       // Fundamental para que el fondo del PNG sea invisible
-    alphaTest: 0.1,          // Ayuda a que los bordes transparentes se recorten limpio
-    side: THREE.DoubleSide,  // Para que el pétalo se vea por delante y por detrás
+    map: petalTexture,       
+    transparent: true,       
+    alphaTest: 0.1,          
+    side: THREE.DoubleSide,  
     roughness: 0.8,
-    // Le dejamos un brillo muuuy sutil para que resalte en la oscuridad
     emissive: 0xffffff,
     emissiveIntensity: 0.05 
   });
 
   const petal = new THREE.Mesh(petalGeometry, petalMaterial);
 
-  // Posición inicial aleatoria (arriba en el aire)
   petal.position.set(
-    (Math.random() - 0.5) * 12, // X
-    Math.random() * 5 + 1,      // Y (Altura)
-    (Math.random() - 0.5) * 8 - 2 // Z
+    (Math.random() - 0.5) * 12, 
+    Math.random() * 5 + 1,      
+    (Math.random() - 0.5) * 8 - 2 
   );
 
-  // Rotación inicial aleatoria
   petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
 
-  // Configuramos físicas de caída libre
   petal.userData = {
     speedY: 0.01 + Math.random() * 0.015,  
     speedX: 0.002 + Math.random() * 0.003, 
@@ -246,6 +255,72 @@ for (let i = 0; i < 70; i++) {
   scene.add(petal);
   petals.push(petal);
 }
+
+// ==========================
+// Vegetación (Árboles y Ramas 2D)
+// ==========================
+const textureLoader2 = new THREE.TextureLoader();
+
+// --- 1. LOS TRES ÁRBOLES DEL FONDO ---
+const arbolTexture = textureLoader2.load('assets/arbol.png');
+// Hacemos el plano grande para que el árbol se vea imponente
+const arbolGeometry = new THREE.PlaneGeometry(8, 8); 
+const arbolMaterial = new THREE.MeshBasicMaterial({
+  map: arbolTexture,
+  transparent: true,
+  alphaTest: 0.1, // Recorta perfectamente los bordes del PNG
+  side: THREE.DoubleSide,
+  fog: true // Queremos que la niebla oscura los afecte para dar profundidad
+});
+
+// Posiciones para los 3 árboles (Atrás y separados)
+const posicionesArboles = [
+  { x: 0, z: -8 },   // Árbol central (justo detrás del personaje)
+  { x: -6, z: -10 }, // Árbol izquierdo (más atrás)
+  { x: 6, z: -9 }    // Árbol derecho
+];
+
+posicionesArboles.forEach(pos => {
+  const arbol = new THREE.Mesh(arbolGeometry, arbolMaterial);
+  arbol.position.set(pos.x, 3.5, pos.z); // La altura (Y=3.5) alinea el tronco al piso
+  scene.add(arbol);
+});
+
+
+// --- 2. LAS RAMAS EN LAS ESQUINAS (AJUSTADAS) ---
+// ==========================
+// Rama en Esquina Superior Derecha (Fija)
+// ==========================
+const textureLoaderVegetacion = new THREE.TextureLoader();
+const ramaTexture = textureLoaderVegetacion.load('assets/rama.png');
+
+// La hacemos un poco más pequeña (de 7x7 a 5x5)
+const ramaGeometry = new THREE.PlaneGeometry(5, 5); 
+
+const ramaMaterial = new THREE.MeshBasicMaterial({
+  map: ramaTexture,
+  transparent: true,
+  side: THREE.DoubleSide,
+  fog: false // Para que mantenga su color nítido frente a la luna
+});
+
+const ramaDer = new THREE.Mesh(ramaGeometry, ramaMaterial);
+
+// POSICIONAMIENTO:
+// X = 4.5 (Más a la derecha)
+// Y = 3.8 (Un poco más arriba para que no tape al personaje)
+// Z = 1.5 (Mantiene el efecto de profundidad hacia el usuario)
+ramaDer.position.set(-4, 2, -1);
+
+// Rotamos un poco la rama para que parezca que "cae" desde la esquina
+ramaDer.rotation.z = -0.2; 
+// Invertimos en Y para que apunte hacia el centro
+ramaDer.rotation.y = Math.PI; 
+
+scene.add(ramaDer);
+
+
+
 
 // ==========================
 // Reloj y Animación
@@ -282,22 +357,18 @@ function animate() {
     sphere.rotation.y += 0.005;
   });
 
-  // 2. Animación de los pétalos de Sakura (AHORA ADENTRO DE LA FUNCIÓN)
+  // 2. Animación de los pétalos de Sakura
   petals.forEach((petal) => {
     const pData = petal.userData;
 
-    // Caen constantemente
     petal.position.y -= pData.speedY;
     
-    // El viento los empuja hacia adelante y los balancea de lado
     petal.position.x += Math.sin(time * pData.speedX + pData.offset) * 0.01;
     petal.position.z += pData.speedZ;
 
-    // Giran sobre sí mismos mientras caen
     petal.rotation.x += pData.rotSpeedX;
     petal.rotation.y += pData.rotSpeedY;
 
-    // BUCLE: Si tocan el suelo (Y < 0) o salen mucho de la pantalla (Z > 3)
     if (petal.position.y < 0 || petal.position.z > 3) {
       petal.position.y = 5 + Math.random() * 2;
       petal.position.x = (Math.random() - 0.5) * 12;
@@ -312,18 +383,7 @@ function animate() {
 animate();
 
 // ==========================
-// Responsive
-// ==========================
-window.addEventListener("resize", () => {
-  camera.aspect = container.clientWidth / container.clientHeight;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  effect.setSize(container.clientWidth, container.clientHeight);
-});
-
-// ==========================
-// Responsive
+// Responsive (¡Ya solo hay uno!)
 // ==========================
 window.addEventListener("resize", () => {
   camera.aspect = container.clientWidth / container.clientHeight;

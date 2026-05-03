@@ -32,7 +32,9 @@
 
   <!-- Contenedor principal -->
   <main class="container-fluid p-0">
-    <div id="viewer-container"></div>
+    <!-- El contenedor atrapa a la luna y calcula el alto para no generar scroll -->
+    <div id="viewer-container" style="position: relative; background-color: #0a141e; overflow: hidden; width: 100%; height: calc(100vh - 110px);">      
+    </div>
   </main>
 
   <!-- Footer -->
