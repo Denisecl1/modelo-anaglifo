@@ -347,6 +347,64 @@ rama2Izq.rotation.z = 0.3;
 
 scene.add(rama2Izq);
 
+// ==========================
+// Audio Ambiental
+// ==========================
+
+// ==========================
+// Audio Ambiental Corregido
+// ==========================
+const listener = new THREE.AudioListener();
+camera.add(listener);
+
+const sound = new THREE.Audio(listener);
+const audioLoader = new THREE.AudioLoader();
+const audioIcon = document.getElementById('audio-icon');
+
+audioLoader.load('assets/musica.mp3', function(buffer) {
+  sound.setBuffer(buffer);
+  sound.setLoop(true);
+  sound.setVolume(0.4);
+  
+  // Intentamos tocarlo
+  sound.play();
+
+  // Verificamos si el navegador lo bloqueó
+  // Si no está sonando (porque se bloqueó el autoplay), ponemos el icono de mudo temporalmente
+  if (!sound.isPlaying) {
+    audioIcon.innerText = '🔇';
+  }
+});
+
+// Función que desbloquea el sonido al primer clic/tecla
+const resumeAudio = () => {
+  if (sound.buffer && !sound.isPlaying) {
+    sound.play();
+    audioIcon.innerText = '🔊'; // Cambia a bocina cuando el usuario interactúa
+    
+    // Limpiamos los eventos una vez que ya logramos sonar
+    window.removeEventListener('click', resumeAudio);
+    window.removeEventListener('keydown', resumeAudio);
+  }
+};
+
+window.addEventListener('click', resumeAudio);
+window.addEventListener('keydown', resumeAudio);
+
+// Lógica del botón manual (Toggle)
+const audioBtn = document.getElementById('audio-control');
+audioBtn.addEventListener('click', (event) => {
+  event.stopPropagation(); 
+  if (sound.isPlaying) {
+    sound.pause();
+    audioIcon.innerText = '🔇';
+  } else {
+    sound.play();
+    audioIcon.innerText = '🔊';
+  }
+});
+
+
 
 
 // ==========================
@@ -419,3 +477,4 @@ window.addEventListener("resize", () => {
   renderer.setSize(container.clientWidth, container.clientHeight);
   effect.setSize(container.clientWidth, container.clientHeight);
 });
+
